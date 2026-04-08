@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADROM</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- SAHA ARKA PLAN -->
+  <svg class="saha-svg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- Zemin -->
+    <rect width="400" height="700" fill="#1a4a1a"/>
+    <!-- Şeritler -->
+    <rect x="0" y="0" width="400" height="116" fill="#1d521d"/>
+    <rect x="0" y="233" width="400" height="116" fill="#1d521d"/>
+    <rect x="0" y="466" width="400" height="116" fill="#1d521d"/>
+    <!-- Dış çizgi -->
+    <rect x="20" y="20" width="360" height="660" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5"/>
+    <!-- Orta çizgi -->
+    <line x1="20" y1="350" x2="380" y2="350" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Orta daire -->
+    <circle cx="200" cy="350" r="60" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <circle cx="200" cy="350" r="3" fill="rgba(255,255,255,0.4)"/>
+    <!-- Üst ceza sahası -->
+    <rect x="100" y="20" width="200" height="80" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Üst küçük ceza sahası -->
+    <rect x="145" y="20" width="110" height="35" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Üst kale -->
+    <rect x="160" y="14" width="80" height="12" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2.5"/>
+    <!-- Üst penaltı noktası -->
+    <circle cx="200" cy="78" r="3" fill="rgba(255,255,255,0.4)"/>
+    <!-- Üst penaltı yayı -->
+    <path d="M 155 100 A 50 50 0 0 1 245 100" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Alt ceza sahası -->
+    <rect x="100" y="600" width="200" height="80" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Alt küçük ceza sahası -->
+    <rect x="145" y="645" width="110" height="35" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Alt kale -->
+    <rect x="160" y="674" width="80" height="12" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2.5"/>
+    <!-- Alt penaltı noktası -->
+    <circle cx="200" cy="622" r="3" fill="rgba(255,255,255,0.4)"/>
+    <!-- Alt penaltı yayı -->
+    <path d="M 155 600 A 50 50 0 0 0 245 600" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <!-- Korner yayları -->
+    <path d="M 20 40 A 20 20 0 0 1 40 20" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <path d="M 360 20 A 20 20 0 0 1 380 40" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <path d="M 20 660 A 20 20 0 0 0 40 680" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <path d="M 380 660 A 20 20 0 0 1 360 680" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+  </svg>
+
+  <div id="app"></div>
+  <script src="app.js"></script>
+</body>
+</html>
