@@ -713,6 +713,7 @@ async function handleAyril(id, session) {
   if (!mac) return;
   const yeni = mac.katilimcilar.filter(k => k !== session.kullanici);
   await sb.from('maclar').update({ katilimcilar: yeni }).eq('id', id);
+  maclarYukle(session);
 }
 
 async function handleSil(id, session) {
