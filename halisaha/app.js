@@ -311,11 +311,14 @@ async function detayYukle(macId, session) {
       <h2 style="margin-bottom:16px">💬 Yorumlar</h2>
       <div id="yorumListesi">
         ${yorumlar && yorumlar.length > 0
-          ? yorumlar.map(y => `
-            <div style="border-bottom:1px solid #f0f0f0;padding:10px 0">
-              <span style="font-weight:600;color:#16a34a">${y.ad}</span>
-              <span style="font-size:12px;color:#aaa;margin-left:8px">${new Date(y.created_at).toLocaleString('tr-TR')}</span>
-              <p style="margin-top:4px;font-size:14px">${y.yorum}</p>
+          ? yorumlar
+              .filter(y => !y.sadece_sahibine || benim)
+              .map(y => `
+            <div style="border-bottom:1px solid #1a1a1a;padding:10px 0">
+              <span style="font-weight:600;color:#22c55e">${y.ad}</span>
+              ${y.sadece_sahibine ? '<span style="font-size:11px;background:#14532d;color:#22c55e;padding:2px 6px;border-radius:10px;margin-left:6px">🔒 Gizli Not</span>' : ''}
+              <span style="font-size:12px;color:#444;margin-left:8px">${new Date(y.created_at).toLocaleString('tr-TR')}</span>
+              <p style="margin-top:4px;font-size:14px;color:#ccc">${y.yorum}</p>
             </div>`).join('')
           : '<div class="empty" style="padding:16px 0">Henüz yorum yok.</div>'
         }
@@ -350,7 +353,6 @@ async function detayYukle(macId, session) {
   if (detayAyrilBtn) detayAyrilBtn.addEventListener('click', async () => {
     await handleAyril(macId, session); detayYukle(macId, session);
   });
-
   const detaySilBtn = document.getElementById('detaySilBtn');
   if (detaySilBtn) detaySilBtn.addEventListener('click', async () => {
     if (!confirm('Bu maçı silmek istediğine emin misin?')) return;
@@ -574,13 +576,64 @@ async function handleMacOlustur(session) {
 }
 
 async function handleKatil(id, session) {
-  const { data: mac } = await sb.from('maclar').select('katilimcilar, eksik').eq('id', id).single();
+  const { data: mac } = await sb.from('maclar').select('katilimcilar, eksik, tarih').eq('id', id).single();
   if (!mac) return;
   if (mac.katilimcilar.includes(session.kullanici)) return;
   if (mac.katilimcilar.length >= mac.eksik) return;
-  const yeni = [...mac.katilimcilar, session.kullanici];
-  await sb.from('maclar').update({ katilimcilar: yeni }).eq('id', id);
-  maclarYukle(session);
+
+  // Aynı gün başka maça kayıtlı mı kontrol et
+  const { data: tumMaclar } = await sb.from('maclar').select('id, tarih, katilimcilar').eq('tarih', mac.tarih);
+  const ayniGunKayitli = tumMaclar && tumMaclar.some(m => m.id !== id && m.katilimcilar && m.katilimcilar.includes(session.kullanici));
+  if (ayniGunKayitli) {
+    showAlert('macAlert', 'Bu tarihte zaten başka bir maça kayıtlısın.', 'red');
+    return;
+  }
+
+  // Not popup'ı göster
+  katilNotPopup(id, session, mac);
+}
+
+function katilNotPopup(macId, session, mac) {
+  const popup = document.createElement('div');
+  popup.id = 'katilPopup';
+  popup.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#1a1a1a;border:1px solid #22c55e33;border-radius:16px;padding:28px;max-width:400px;width:100%">
+        <h3 style="color:#22c55e;margin-bottom:8px">Maça Katıl</h3>
+        <p style="color:#888;font-size:13px;margin-bottom:16px">Maç sahibine bir not bırak (zorunlu):</p>
+        <div class="form-group">
+          <textarea id="katilNot" rows="3" style="resize:vertical" placeholder="Kendini tanıt, pozisyonun, tecrüben..."></textarea>
+        </div>
+        <div id="katilPopupAlert"></div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn btn-green" id="katilOnayBtn" style="flex:1">Katıl</button>
+          <button class="btn btn-outline" id="katilIptalBtn" style="flex:1">İptal</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(popup);
+
+  document.getElementById('katilIptalBtn').addEventListener('click', () => popup.remove());
+  document.getElementById('katilOnayBtn').addEventListener('click', async () => {
+    const not = document.getElementById('katilNot').value.trim();
+    if (!not) {
+      document.getElementById('katilPopupAlert').innerHTML = '<div class="alert alert-red">Not yazmak zorunlu.</div>';
+      return;
+    }
+    // Notu kaydet (sadece sahibine)
+    await sb.from('yorumlar').insert({
+      mac_id: macId,
+      kullanici: session.kullanici,
+      ad: session.ad,
+      yorum: not,
+      sadece_sahibine: true
+    });
+    // Maça katıl
+    const yeni = [...mac.katilimcilar, session.kullanici];
+    await sb.from('maclar').update({ katilimcilar: yeni }).eq('id', macId);
+    popup.remove();
+    maclarYukle(session);
+  });
 }
 
 async function handleAyril(id, session) {
